@@ -43,7 +43,7 @@ func main() {
 	//     ReadTimeout:  15 * time.Second,
 	// }
 
-	r := router.Router(db)
+	r := router.Router(db) //passing the db reference to the router
 	fmt.Println("Successfully connected to database!")
 	log.Fatal(http.ListenAndServe(":8081", r))
 }

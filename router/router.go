@@ -9,7 +9,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var db *sql.DB
+var db *sql.DB /*declare it global, so we can use it in every HandleFunc.*/
 
 type user struct {
 	id        string
@@ -17,10 +17,6 @@ type user struct {
 	lastname  string
 	address   string
 	bday      string
-}
-
-func homePage(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Welcome to the homePage!")
 }
 
 func returnUsers(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +55,6 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 	}
 	// get form values
 	u := user{}
-	// user.id = r.FormValue("id")
 	u.firstname = r.FormValue("firstname")
 	u.lastname = r.FormValue("lastname")
 	u.address = r.FormValue("address")
@@ -90,13 +85,12 @@ func deleteUser(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// we export the router
+/*export Router*/
 func Router(database *sql.DB) *mux.Router {
 	fmt.Println("Router enabled ...")
 	db = database
 	Router := mux.NewRouter().StrictSlash(true)
 
-	Router.HandleFunc("/", homePage)
 	Router.HandleFunc("/users", returnUsers).Methods("GET")
 	Router.HandleFunc("/users", createUser).Methods("POST")
 	// 	Router.HandleFunc("/users/{Id}", returnSingleUser).Methods("GET")
