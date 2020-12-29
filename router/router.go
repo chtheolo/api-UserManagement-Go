@@ -43,7 +43,7 @@ func returnUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, usr := range users {
-		fmt.Printf("%s %s %s %s", usr.firstname, usr.lastname, usr.address, usr.bday)
+		fmt.Printf("%s %s %s %s %s", usr.id, usr.firstname, usr.lastname, usr.address, usr.bday)
 	}
 
 }
@@ -74,7 +74,27 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func returnSingleUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
+	vars := mux.Vars(r)
+	key := vars["id"]
 
+	row := db.QueryRow(`SELECT * FROM "users" WHERE id = $1`, key)
+	u := user{}
+	err := row.Scan(&u.id, &u.firstname, &u.lastname, &u.address, &u.bday)
+
+	switch {
+	case err == sql.ErrNoRows:
+		http.NotFound(w, r)
+		return
+	case err != nil:
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Fprintf(w, "%s, %s, %s, %s, %s", u.id, u.firstname, u.lastname, u.address, u.bday)
 }
 
 func editUser(w http.ResponseWriter, r *http.Request) {
@@ -93,7 +113,7 @@ func Router(database *sql.DB) *mux.Router {
 
 	Router.HandleFunc("/users", returnUsers).Methods("GET")
 	Router.HandleFunc("/users", createUser).Methods("POST")
-	// 	Router.HandleFunc("/users/{Id}", returnSingleUser).Methods("GET")
+	Router.HandleFunc("/users/{id}", returnSingleUser).Methods("GET")
 	// 	Router.HandleFunc("/users/{Id}", editUser).Methods("PUT")
 	// 	Router.HandleFunc("/users/{Id}", deleteUser).Methods("DELETE")
 	return Router
