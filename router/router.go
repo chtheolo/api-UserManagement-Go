@@ -46,8 +46,6 @@ func returnUsers(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(users)
-	// fmt.Println(usersJson)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -55,12 +53,10 @@ func returnUsers(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	// json.NewEncoder(w).Encode(usersJson)
 
 	for _, usr := range users {
 		fmt.Printf("%s %s %s %s %s", usr.Id, usr.Firstname, usr.Lastname, usr.Address, usr.Bday)
 	}
-
 }
 
 func createUser(w http.ResponseWriter, r *http.Request) {
@@ -99,7 +95,7 @@ func returnSingleUser(w http.ResponseWriter, r *http.Request) {
 
 	row := db.QueryRow(`SELECT * FROM "users" WHERE id = $1`, key)
 	u := user{}
-	err := row.Scan(&u.Id, &u.Firstname, &u.Lastname, &u.Address, &u.Bday)
+	err := row.Scan(&u.Firstname, &u.Lastname, &u.Address, &u.Bday, &u.Id)
 
 	switch {
 	case err == sql.ErrNoRows:
@@ -110,8 +106,19 @@ func returnSingleUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(u)
-	fmt.Fprintf(w, "%s, %s, %s, %s, %s", u.Id, u.Firstname, u.Lastname, u.Address, u.Bday)
+	userJson, err := json.Marshal(u)
+	if err != nil {
+		panic(err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(userJson)
+	if err != nil {
+		panic(err)
+	}
+
+	// fmt.Fprintf(w, "%s, %s, %s, %s, %s", u.Id, u.Firstname, u.Lastname, u.Address, u.Bday)
 }
 
 func editUser(w http.ResponseWriter, r *http.Request) {
