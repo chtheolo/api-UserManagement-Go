@@ -60,6 +60,7 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 	u.address = r.FormValue("address")
 	u.bday = r.FormValue("bday")
 
+	// validate the form values
 	if u.firstname == "" || u.lastname == "" || u.address == "" || u.bday == "" {
 		fmt.Println(r.FormValue("firstname"))
 		http.Error(w, http.StatusText(400), http.StatusBadRequest)
@@ -98,6 +99,33 @@ func returnSingleUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func editUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "PUT" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
+
+	vars := mux.Vars(r)
+	key := vars["id"]
+
+	u := user{}
+	u.firstname = r.FormValue("firstname")
+	u.lastname = r.FormValue("lastname")
+	u.address = r.FormValue("address")
+	u.bday = r.FormValue("bday")
+
+	// validate the form values
+	if u.firstname == "" || u.lastname == "" || u.address == "" || u.bday == "" {
+		fmt.Println(r.FormValue("firstname"))
+		http.Error(w, http.StatusText(400), http.StatusBadRequest)
+		return
+	}
+
+	// insert new values
+	_, err := db.Exec("UPDATE users SET firstname = $1, lastname = $2, address = $3, bday = $4 WHERE id = $5", u.firstname, u.lastname, u.address, u.bday, key)
+	if err != nil {
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
+	}
 
 }
 
@@ -114,7 +142,7 @@ func Router(database *sql.DB) *mux.Router {
 	Router.HandleFunc("/users", returnUsers).Methods("GET")
 	Router.HandleFunc("/users", createUser).Methods("POST")
 	Router.HandleFunc("/users/{id}", returnSingleUser).Methods("GET")
-	// 	Router.HandleFunc("/users/{Id}", editUser).Methods("PUT")
+	Router.HandleFunc("/users/{id}", editUser).Methods("PUT")
 	// 	Router.HandleFunc("/users/{Id}", deleteUser).Methods("DELETE")
 	return Router
 }
