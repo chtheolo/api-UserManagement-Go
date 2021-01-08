@@ -6,22 +6,28 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+
+	"github.com/joho/godotenv"
 
 	_ "github.com/lib/pq"
 )
 
 func main() {
+	// open .env file in the local directory
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal("Error loading .env file!")
+	}
 
-	const (
-		host     = "localhost"
-		port     = 5432
-		user     = "postgres"
-		password = "$k0p3l0$"
-		dbname   = "users"
-		ssl      = "disable"
-	)
+	host := os.Getenv("HOST")
+	port := os.Getenv("PORT")
+	user := os.Getenv("USER")
+	password := os.Getenv("POSTGRES_PASS")
+	dbname := os.Getenv("DB")
+	ssl := os.Getenv("SSL_STATE")
 
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s", host, port, user, password, dbname, ssl)
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", host, port, user, password, dbname, ssl)
 	db, err := sql.Open("postgres", psqlInfo)
 
 	if err != nil {
